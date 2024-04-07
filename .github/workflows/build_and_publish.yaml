@@ -16,7 +16,6 @@ jobs:
     steps:
       - name: Checkout git repo
         uses: actions/checkout@v3
-
       - name: Install Node and NPM
         uses: actions/setup-python@v5
         with:
