@@ -8,10 +8,7 @@ on:
 
 jobs:
   publish:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [macos-latest]
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout git repo
