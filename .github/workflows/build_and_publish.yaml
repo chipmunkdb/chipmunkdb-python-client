@@ -27,7 +27,7 @@ jobs:
       - name: build and publish
         run: |
           echo "Building"
-          apt-get -qy update
+          sudo apt-get -qy update
           pip install twine
           pip install setuptools==58.2.0
           pip wheel --no-deps -w dist .
