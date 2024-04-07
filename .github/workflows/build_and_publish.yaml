@@ -1,0 +1,39 @@
+name: Publish
+permissions: write-all
+
+on:
+  push:
+    tags:
+      - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
+
+jobs:
+  publish:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [macos-latest]
+
+    steps:
+      - name: Checkout git repo
+        uses: actions/checkout@v3
+
+      - name: Install Node and NPM
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.8.2'
+      - name: Replace Vversion
+        id: replace_version
+        uses: mad9000/actions-find-and-replace-string@5
+        with:
+          source: ${{ github.ref_name }}
+          find: 'v'
+          replace: ''
+      - name: build and publish
+        run: |
+          echo "Building"
+          apt-get -qy update
+          pip install twine
+          pip install setuptools==58.2.0
+          pip wheel --no-deps -w dist .
+          echo $TWINE_USERNAME # please define TWINE_USERNAME and TWINE_PASSWORD
+          python -m twine upload -u __token__ -p "$TWINE_API_KEY" --repository-url https://upload.pypi.org/legacy/ dist/*

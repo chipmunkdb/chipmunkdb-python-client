@@ -1,0 +1,4 @@
+chipmunkdb/__pycache__
+build
+chipmunkdb_python_client.egg-info
+dist
