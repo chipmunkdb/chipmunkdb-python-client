@@ -33,3 +33,7 @@ jobs:
           pip wheel --no-deps -w dist .
           echo $TWINE_USERNAME # please define TWINE_USERNAME and TWINE_PASSWORD
           python -m twine upload -u __token__ -p "$TWINE_API_KEY" --repository-url https://upload.pypi.org/legacy/ dist/*
+        with:
+            TWINE_API_KEY: ${{ secrets.TWINE_API_KEY }}
+            TWINE_USERNAME: ${{ secrets.TWINE_USERNAME }}
+            TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
