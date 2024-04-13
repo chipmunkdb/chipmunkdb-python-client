@@ -13,7 +13,7 @@ with open(os.path.join(HERE, "README_pip.md")) as fid:
 # This call to setup() does all the work
 setup(
     name="chipmunkdb_python_client",
-    version="2.0.20",
+    version="2.0.21",
     description="Read and Write Dataframes and Data to a chipmunkdb",
     long_description=README,
     long_description_content_type="text/markdown",

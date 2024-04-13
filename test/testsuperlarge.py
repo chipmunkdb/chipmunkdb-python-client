@@ -17,17 +17,16 @@ df = db.collection_as_pandas("testdomain")
 # resize the dataframe by copying it to more than 500mb
 # this will cause the dataframe to be split into multiple chunks
 # and the dataframe will be split into multiple chunksw
-last_date = df.index[-1]
-while df.memory_usage().sum() < 500000000:
-    data_index = []
-    data = []
-    for i in range(0, 100000):
-        last_date = last_date + pd.Timedelta(minutes=1)
-        data_index.append(last_date)
-        data.append({"datetime": last_date, "chart2.main:open": 1, "chart2.main:close": 1,
-                                                              "chart2.main:high": 1, "chart2.main:low": 1, "chart2.main:volume": 1})
+last_date = pd.Timestamp.now()
+data_index = []
+data = []
+for i in range(0, 100000):
+    last_date = last_date + pd.Timedelta(minutes=1)
+    data_index.append(last_date)
+    data.append({"datetime": last_date, "chart2.main:open": 1, "chart2.main:close": 1,
+                                                          "chart2.main:high": 1, "chart2.main:low": 1, "chart2.main:volume": 1})
 
-    df = pd.concat([df, pd.DataFrame(index=data_index, data=data)])
+df = pd.concat([df, pd.DataFrame(index=data_index, data=data)])
 
 
 

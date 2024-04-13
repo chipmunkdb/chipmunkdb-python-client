@@ -85,13 +85,24 @@ class ChipmunkDb():
         if session_id is None:
             # lets iterate over the dataframe and send chunks with a session_id
             session_id = self.generate_random_id()
-
+            finished = False
             while True:
-                chunk = df.head(40000)
-                if chunk.empty:
+                for retry in range(0, 5):
+                    try:
+                        rowLength = int((40000 / df.columns.size) * 8)
+                        chunk = df.head(rowLength)
+                        if chunk.empty:
+                            finished = True
+                            break
+                        df = df.tail(-rowLength)
+                        self.save_as_pandas(chunk, collection, mode=mode, domain=domain, session_id=session_id, end=df.shape[0] == 0)
+                        break
+                    except Exception as e:
+                        print("Error: ", str(e))
+                        continue
+
+                if finished:
                     break
-                df = df.tail(-40000)
-                self.save_as_pandas(chunk, collection, mode=mode, domain=domain, session_id=session_id, end=df.shape[0] == 0)
 
         else:
 
@@ -113,13 +124,18 @@ class ChipmunkDb():
         return True
 
     def query(self, query, domain=None):
-        domainQ = ""
-        if domain is not None:
-            domainQ = "&domain="+domain
-        res = requests.get(url=self.getHostAndPort()+"/query?q="+query+domainQ, headers={"x-data": json.dumps({"streamed-response": "true"})})
-        data = res.json()
+        try:
+            domainQ = ""
+            if domain is not None:
+                domainQ = "&domain=" + domain
+            res = requests.get(url=self.getHostAndPort() + "/query?q=" + query + domainQ,
+                               headers={"x-data": json.dumps({"streamed-response": "true"})})
+            data = res.json()
 
-        return data["result"]
+            return data["result"]
+        except Exception as e:
+            print("Error: ", str(e))
+            return None
 
     def dropColumn(self, collection, columns, domain=None):
         res = requests.delete(url=self.getHostAndPort() + "/collection/" + collection + "/dropColumns",
@@ -130,26 +146,34 @@ class ChipmunkDb():
         return data
 
     def collection_as_pandas(self, collection, columns=[], domain=None):
-        res = requests.get(url=self.getHostAndPort()+"/collection/"+collection+"/rawStream",
-                           headers={"Content-Type": 'application/octet-stream', "x-data": json.dumps({"columns": columns, "domain": domain})})
-        data = res.content
+        try:
+            res = requests.get(url=self.getHostAndPort()+"/collection/"+collection+"/rawStream",
+                               headers={"Content-Type": 'application/octet-stream', "x-data": json.dumps({"columns": columns, "domain": domain})})
+            data = res.content
 
-        pq_file = io.BytesIO(data)
-        df = pd.read_parquet(pq_file)
+            pq_file = io.BytesIO(data)
+            df = pd.read_parquet(pq_file)
 
-        return df
+            return df
+        except Exception as e:
+            print("Error: ", str(e))
+            return None
 
     def collection_as_pandas_additional(self, collection, additionalCollections: [], columns=[], domain=None):
-        res = requests.get(url=self.getHostAndPort()+"/collection/"+collection+"/rawStream",
-                           headers={"Content-Type": 'application/octet-stream', "x-data": json.dumps({"columns": columns,
-                                                                                                      "additionalCollections": additionalCollections,
-                                                                                                      "domain": domain})})
-        data = res.content
+        try:
+            res = requests.get(url=self.getHostAndPort()+"/collection/"+collection+"/rawStream",
+                               headers={"Content-Type": 'application/octet-stream', "x-data": json.dumps({"columns": columns,
+                                                                                                          "additionalCollections": additionalCollections,
+                                                                                                          "domain": domain})})
+            data = res.content
 
-        pq_file = io.BytesIO(data)
-        df = pd.read_parquet(pq_file)
+            pq_file = io.BytesIO(data)
+            df = pd.read_parquet(pq_file)
 
-        return df
+            return df
+        except Exception as e:
+            print("Error: ", str(e))
+            return None
 
     def storages(self):
         res = requests.get(url=self.getHostAndPort()+"/storages")
