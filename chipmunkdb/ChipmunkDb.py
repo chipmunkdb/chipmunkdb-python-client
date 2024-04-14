@@ -5,8 +5,9 @@ import io
 import pyarrow as pa
 import pyarrow.parquet as pq
 import json
+import zlib
 import pandas as pd
-
+import gzip
 
 
 class StorageEntry:
@@ -116,9 +117,13 @@ class ChipmunkDb():
                 headerData["end"] = end
 
             f.seek(0, 0)
+            # gzip data to request_body
+            request_body = gzip.compress(f.getvalue())
+
             res = requests.post(url=self.getHostAndPort()+'/collection/' + str(collection) + '/insertRaw',
-                                files={"data": f.getvalue()},
-                                headers={"Content-Type": 'application/octet-stream', "x-data": json.dumps(headerData)})
+                                files={"data": request_body},
+                                headers={"Content-Type": 'application/octet-stream',
+                                         "x-data": json.dumps(headerData)})
             f.close()
 
         return True
@@ -131,6 +136,9 @@ class ChipmunkDb():
             res = requests.get(url=self.getHostAndPort() + "/query?q=" + query + domainQ,
                                headers={"x-data": json.dumps({"streamed-response": "true"})})
             data = res.json()
+
+            if "error" in data:
+                raise Exception(data["error"])
 
             return data["result"]
         except Exception as e:

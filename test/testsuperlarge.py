@@ -32,6 +32,7 @@ df = pd.concat([df, pd.DataFrame(index=data_index, data=data)])
 
 start = time.time()
 db.save_as_pandas(df, "testdomain", mode="dropbefore")
+
 end = time.time()
 print("read complete dataframe with indicator again", end - start)
 
@@ -41,7 +42,7 @@ print("read complete dataframe with indicator again", end - start)
 
 
 start = time.time()
-d = db.query("SELECT * FROM testdomain LIMIT 10000", domain="chart1")
+d = db.query("SELECT * FROM testdomain LIMIT 10000")
 end = time.time()
 print("extract only a part out of it", end - start)
 
